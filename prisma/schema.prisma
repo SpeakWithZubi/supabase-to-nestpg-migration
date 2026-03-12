@@ -1,0 +1,235 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+//--PART A: CORE ENTITIES --
+
+model User {
+  id             String    @id @default(uuid()) @db.Uuid
+  email          String
+  createdAt      DateTime? @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt      DateTime? @default(now()) @db.Timestamptz() @map("Updated_at")
+  displayName    String?   @map("displayName")
+  hasCompletedOnboarding  Boolean? @default(false) @map("has_completed_onboarding")
+  phone          String?  @unique
+  schoolId       String?  @map("school_id")
+  profileCreatedAt   DateTime? @db.Timestamptz() @map("profile_created_at")
+  //--Relations
+  childProfile   ChildProfile?
+  sessions       Session[]
+
+  @@map("users")
+}
+
+model ChildProfile{
+  userId          String   @id @map("user_id")  @db.Uuid
+  createdAt       DateTime? @default(now()) @db.Timestamptz()  @map("created_at")
+  updatedAt       DateTime? @default(now()) @db.Timestamptz()  @map("Updated_at")
+  alias           String
+  age             Int?
+  grade           String?
+  interests       String[]  @default([])
+  consentGiven    Boolean?  @default(false)  @map("consent_given")
+  parentPhoneCountryCode String?  @map("parent_phone_country_code")
+  parentPhoneNumber  String?   @map("parent_phone_number")
+  pronouns           String?
+  motherTongue       String?   @default("")  @map("mother_tongue")
+  languageAssistEnabled   Boolean  @default(false)  @map("language_assist_enabled")
+  favouriteCharacter   String?   @map("favourite_character")
+  schoolName       String?    @map("school_name")
+  schoolId         String?    @map("school_id")
+
+  //--Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("child_profiles")
+}
+
+model Session {
+  id                          String    @id @default(uuid()) @db.Uuid
+  userId                      String    @map("user_id") @db.Uuid
+  createdAt                   DateTime? @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt                   DateTime? @default(now()) @db.Timestamptz() @map("updated_at")
+  sessionName                 String?   @map("session_name")
+  status                      String?   @default("created")
+  transcriptBundle            Json?     @map("transcript_bundle")
+  childEnjoymentRating        Int?      @map("child_enjoyment_rating")
+  childEnjoymentFeedback      String?   @map("child_enjoyment_feedback")
+  analysisHelpfulnessRating   Int?      @map("analysis_helpfulness_rating")
+  analysisHelpfulnessFeedback String?   @map("analysis_helpfulness_feedback")
+  feedbackSubmittedAt         DateTime? @db.Timestamptz() @map("feedback_submitted_at")
+  combinedAudioUrl            String?   @map("combined_audio_url")
+  aggregatedResult            Json?     @map("aggregated_result")
+  parentPhoneNumber           String?   @map("parent_phone_number")
+  reportPdfGenerated          String?   @map("report_pdf_generated")
+  reportPdfSent               String?   @map("report_pdf_sent")
+  generatedAt                 DateTime? @db.Timestamptz() @map("generated_at")
+  sentAt                      DateTime? @db.Timestamptz() @map("sent_at")
+  reportPdfUrl                String?   @map("report_pdf_url")
+  utmData                     String?   @map("utm_data")
+  schoolName                  String?   @map("school_name")
+  grade                       Int?
+  schoolId                    String?   @map("school_id")
+  finalScore                  Int?      @map("final_score")
+  childProfile                Json?     @map("child_profile")
+
+  // --Relations
+  user            User             @relation(fields: [userId], references: [id])
+  activityBundles ActivityBundle[]
+
+  @@map("sessions")
+}
+
+model AppConfig {
+  key       String    @id
+  value     String
+  updatedAt DateTime? @default(now()) @db.Timestamptz() @map("updated_at")
+
+  @@map("app_config")
+}
+
+model AgeGroup {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String    @unique
+  minAge      Int       @map("min_age")
+  maxAge      Int?      @map("max_age")
+  description String?
+  createdAt   DateTime? @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt   DateTime? @default(now()) @db.Timestamptz() @map("updated_at")
+
+  // --Relations
+  assessmentActivities AssessmentActivity[]
+
+  @@map("age_groups")
+}
+
+model AssessmentActivity {
+  id                           String    @id @default(uuid()) @db.Uuid
+  ageGroupId                   String    @map("age_group_id") @db.Uuid
+  activityKey                  String    @map("activity_key")
+  orderIndex                   Int       @map("order_index")
+  estimatedDurationSeconds     Int       @default(120) @map("estimated_duration_seconds")
+  assetUrl                     String?   @map("asset_url")
+  transitionInstruction        String?   @map("transition_instruction")
+  isActive                     Boolean?  @default(true) @map("is_active")
+  createdAt                    DateTime? @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt                    DateTime? @default(now()) @db.Timestamptz() @map("updated_at")
+  instructions                 String
+  preActivityUrl               String?   @map("pre_activity_url")
+  postActivityUrl              String?   @map("post_activity_url")
+  preActivityMuxPlaybackId     String?   @map("pre_activity_mux_playback_id")
+  postActivityMuxPlaybackId    String?   @map("post_activity_mux_playback_id")
+  activityBackgroundImageMobile String?   @map("activity_background_image-mobile") // Handles the hyphen
+  activityBackgroundImageTab   String?   @map("activity_background_image-tab")    // Handles the hyphen
+  activityBackgroundImageFull  String?   @map("activity_background_image-full")   // Handles the hyphen
+  bottomEmoji                  String?   @map("bottom_emoji")
+  uiInstructions               String?   @map("ui_instructions")
+  hintDelaySeconds             Int?      @map("hint_delay_seconds")
+  hintText                     String?   @map("hint_text")
+
+  // --Relations
+  ageGroup AgeGroup @relation(fields: [ageGroupId], references: [id])
+
+  @@map("assessment_activities")
+}
+
+model SystemPrompt {
+  id          String    @id @default(uuid()) @db.Uuid
+  key         String    @unique
+  content     String
+  description String?
+  isActive    Boolean?  @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt   DateTime? @default(now()) @db.Timestamptz() @map("updated_at")
+
+  @@map("system_prompts")
+}
+//---------------------------------------------------
+//Part:B Analysis Tables-----
+
+model ActivityBundle {
+  id                 String    @id @default(uuid()) @db.Uuid
+  sessionId          String    @map("session_id") @db.Uuid
+  activityId         String    @map("activity_id")
+  activityKey        String    @map("activity_key")
+  ageGroupId         String?   @map("age_group_id")
+  bundleJson         Json      @map("bundle_json")
+  status             String    @default("pending")
+  errorMessage       String?   @map("error_message")
+  createdAt          DateTime? @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt          DateTime? @default(now()) @db.Timestamptz() @map("updated_at")
+  audioUrl           String?   @map("audio_url")
+  audioFileId        String?   @map("audio_file_id")
+  audioDurationMs    Int?      @map("audio_duration_ms")
+  audioFileSizeBytes BigInt?   @map("audio_file_size_bytes")
+
+  // --Relations
+  session Session @relation(fields: [sessionId], references: [id])
+
+  @@map("activity_bundles")
+}
+
+model ParameterDefinition {
+  id                  String    @id @default(uuid()) @db.Uuid
+  parameterKey        String    @unique @map("parameter_key")
+  metricName          String    @map("metric_name")
+  dependsOnActivities String[]  @map("depends_on_activities")
+  dependsOnMetrics    String[]  @map("depends_on_metrics")
+  isActive            Boolean?  @default(true) @map("is_active")
+  createdAt           DateTime? @default(now()) @db.Timestamptz() @map("created_at")
+  updatedAt           DateTime? @default(now()) @db.Timestamptz() @map("updated_at")
+  whatItIs            String?   @map("what_it_is")
+  whyItMatters        String?   @map("why_it_matters")
+
+  // --Relations
+  metricComputations MetricComputation[]
+  jobOutboxes        JobOutbox[]
+
+  @@map("parameter_definitions")
+}
+
+model MetricComputation {
+  id           String    @id @default(uuid()) @db.Uuid
+  sessionId    String    @map("session_id") @db.Uuid
+  metricName   String    @map("metric_name")
+  status       String?   @default("pending")
+  score        Int?
+  feedback     Json?
+  errorMessage String?   @map("error_message")
+  createdAt    DateTime? @default(now()) @db.Timestamp() @map("created_at")
+  updatedAt    DateTime? @default(now()) @db.Timestamp() @map("updated_at")
+  metricKey    String    @map("metric_key")
+
+  // --Relations
+  parameterDefinition ParameterDefinition @relation(fields: [metricKey], references: [parameterKey])
+
+  @@map("metric_computations")
+}
+
+model JobOutbox {
+  id               String    @id @default(uuid()) @db.Uuid
+  sessionId        String    @map("session_id") @db.Uuid
+  metricName       String    @map("metric_name")
+  activityBundleId String?   @map("activity_bundle_id") @db.Uuid
+  payload          Json
+  status           String?   @default("pending")
+  retryCount       Int?      @default(0) @map("retry_count")
+  lastError        String?   @map("last_error")
+  createdAt        DateTime? @default(now()) @db.Timestamp() @map("created_at")
+  sentAt           DateTime? @db.Timestamp() @map("sent_at")
+  metricKey        String    @map("metric_key")
+
+  // --Relations
+  parameterDefinition ParameterDefinition @relation(fields: [metricKey], references: [parameterKey])
+
+  @@map("job_outbox")
+}
