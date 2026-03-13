@@ -1,18 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChildProfilesController } from './child-profiles.controller';
+import { ChildProfilesService } from './child-profiles.service';
 
 describe('ChildProfilesController', () => {
-  let controller: ChildProfilesController;
+let controller: ChildProfilesController;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ChildProfilesController],
-    }).compile();
+beforeEach(async () => {
+const module: TestingModule = await Test.createTestingModule({
+controllers: [ChildProfilesController],
+providers: [
+{ provide: ChildProfilesService, useValue: {} }
+],
+}).compile();
 
-    controller = module.get<ChildProfilesController>(ChildProfilesController);
-  });
+controller = module.get<ChildProfilesController>(ChildProfilesController);
+});
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
+it('should be defined', () => {
+expect(controller).toBeDefined();
+});
 });
